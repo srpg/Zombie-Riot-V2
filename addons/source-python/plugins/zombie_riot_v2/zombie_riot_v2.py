@@ -86,10 +86,10 @@ MAP_CHANGE = SayText2(_trasnlations['map change'])
 MARKET_ALIVE = SayText2(_trasnlations['market alive'])
 MARKET_TEAM = SayText2(_trasnlations['market ct'])
 
-PURCHASE_ALIVE = SayText2(_trasnlations['purchase alive'])#SayText2('{prefix}You need to be {GREEN}alive {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
-PURCHASE_AFFORD = SayText2(_trasnlations['purchase afford'])#SayText2('{prefix}You do not have {RED}enough {GREEN}cash {BRIGHT_GREEN}to {GREEN}purchase {RED}{weapon}')
-PURCHASE_TEAM = SayText2(_trasnlations['purchase team'])#SayText2('{prefix}You need to be {GREEN}ct tean {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
-PURCHASED_SUCCESFULLY = SayText2(_trasnlations['succesfully purchased'])#SayText2('{prefix}You have {GREEN}succesfully purchased {RED}{weapon} {BRIGHT_GREEN}with {GREEN}{price}$')
+PURCHASE_ALIVE = SayText2(_trasnlations['purchase alive'])
+PURCHASE_AFFORD = SayText2(_trasnlations['purchase afford'])
+PURCHASE_TEAM = SayText2(_trasnlations['purchase team'])
+PURCHASED_SUCCESFULLY = SayText2(_trasnlations['succesfully purchased'])
 
 HINT_INFO = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
 HINT_INFO_BOT = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
@@ -246,7 +246,7 @@ def change_random_map():
         MAP_CHANGE.send()
         Delay(3, queue_command_string, (f'changelevel {next_map}',))
     else:
-        NO_NEXT_MAP_FOUND.send()
+        NO_NEXT_MAP_FOUND.send(prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED)
 
 def cancel_freeze_delay():
     global freeze_delay, flash_delay, god_delay
