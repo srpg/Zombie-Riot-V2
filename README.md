@@ -6,7 +6,7 @@ In order to win a day, you need to kill all zombies.
 
 This plugin requires <a href="https://forums.sourcepython.com/">Source.Python</a> to load.
 
-This plugin only supports Counter-Strike-Source(Possible other games)
+This plugin supports Counter-Strike-Source(Possible other games)
 
 Load Command: sp plugin load zombie_riot_v2
 
