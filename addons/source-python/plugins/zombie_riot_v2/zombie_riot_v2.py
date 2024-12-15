@@ -67,29 +67,29 @@ god_delay = None
 _path = Path(__file__).dirname()
 _server_name = cvar.find_var('hostname')
 
-_trasnlations = LangStrings('zombie_riot_v2')
+_translations = LangStrings('zombie_riot_v2')
 _settings = ConfigObj(_path + '/settings.ini')
 _downloads = _path.joinpath('downloads.txt')
 
 prefix = f'{GREEN}[Zombie Riot] » {BRIGHT_GREEN}'
 
-MARKET = SayText2(_trasnlations['market'])
-GAMEPLAY = SayText2(_trasnlations['gameplay'])
+MARKET = SayText2(_translations['market'])
+GAMEPLAY = SayText2(_translations['gameplay'])
 
 RESPAWN = TextMsg('You will respawn in {time} seconds')
 RESPAWNS = TextMsg('You will respawn in {time} second')
 
-NO_NEXT_MAP_FOUND = SayText2(_trasnlations['map no found'])
-NEXT_MAP_SELECTED = SayText2(_trasnlations['new map'])
-MAP_CHANGE = SayText2(_trasnlations['map change'])
+NO_NEXT_MAP_FOUND = SayText2(_translations['map no found'])
+NEXT_MAP_SELECTED = SayText2(_translations['new map'])
+MAP_CHANGE = SayText2(_translations['map change'])
 
-MARKET_ALIVE = SayText2(_trasnlations['market alive'])
-MARKET_TEAM = SayText2(_trasnlations['market ct'])
+MARKET_ALIVE = SayText2(_translations['market alive'])
+MARKET_TEAM = SayText2(_translations['market ct'])
 
-PURCHASE_ALIVE = SayText2(_trasnlations['purchase alive'])
-PURCHASE_AFFORD = SayText2(_trasnlations['purchase afford'])
-PURCHASE_TEAM = SayText2(_trasnlations['purchase team'])
-PURCHASED_SUCCESFULLY = SayText2(_trasnlations['succesfully purchased'])
+PURCHASE_ALIVE = SayText2(_translations['purchase alive'])
+PURCHASE_AFFORD = SayText2(_translations['purchase afford'])
+PURCHASE_TEAM = SayText2(_translations['purchase team'])
+PURCHASED_SUCCESFULLY = SayText2(_translations['succesfully purchased'])
 
 HINT_INFO = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
 HINT_INFO_BOT = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
