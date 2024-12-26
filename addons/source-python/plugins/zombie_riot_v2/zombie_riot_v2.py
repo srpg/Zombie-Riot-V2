@@ -602,7 +602,7 @@ def secondary_market_menu_callback(menu, index, option):
     cash = player.cash
 
     price = choice.cost
-    secondary = secondary.primary
+    secondary = player.secondary
     weapon_basename = choice.basename
 
     if not player.team == 3:
