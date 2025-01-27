@@ -91,8 +91,8 @@ PURCHASE_AFFORD = SayText2(_translations['purchase afford'])
 PURCHASE_TEAM = SayText2(_translations['purchase team'])
 PURCHASED_SUCCESFULLY = SayText2(_translations['succesfully purchased'])
 
-HINT_INFO = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
-HINT_INFO_BOT = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
+HINT_INFO = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
+HINT_INFO_BOT = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
 
 MAP_LIST = listdir(f'{GAME_NAME}/maps')
 BACKGROUND_SOUND = Sound('ambient/zr/zr_ambience.mp3')
@@ -210,6 +210,7 @@ def end_round():
 
 @Repeat
 def hint_panel():
+    title = get_day_name()
     humans = alive_humans()
     for player in PlayerIter('human'):
         index = player.index
@@ -279,8 +280,20 @@ def remove_idle_weapons():
     for weapons in filter(lambda x: x.owner_handle in [-1, 0], WeaponIter()):
         weapons.remove()
 
+def get_day_name():
+    try:
+        return _settings['zr'][f'{day}']['name']
+    except KeyError:
+        return ''
+
 def get_zombie_model():
-    return _settings['zr'][f'{day}']['model']
+    models = []
+    for i in _settings['zr'][f'{day}']['model']:
+        models.append(i.split(','))
+    if len(models) is 1:
+        return _settings['zr'][f'{day}']['model']
+    else:
+        return choice(models)
 
 def get_zombie_kill_amount():
     return int(_settings['zr'][f'{day}']['zombies'])
