@@ -218,12 +218,12 @@ def hint_panel():
 
         target = player.hurted_zombie
         if target is None:
-            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=zombies)
+            HINT_INFO.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=zombies)
         else:
             try:
                 target_player = Player(index_from_userid(target))
                 if not target_player.dead:
-                    HINT_INFO_BOT.send(index, day=day, max_day=max_day, humans=humans, zombies=zombies, name=target_player.name, health=target_player.health)
+                    HINT_INFO_BOT.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=zombies, name=target_player.name, health=target_player.health)
                 else:
                     target = None
             except ValueError:
