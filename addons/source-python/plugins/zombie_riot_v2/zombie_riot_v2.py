@@ -290,7 +290,7 @@ def get_zombie_model():
     models = []
     for i in _settings['zr'][f'{day}']['model']:
         models.append(i.split(','))
-    if len(models) is 1:
+    if len(models) is 0:
         return _settings['zr'][f'{day}']['model']
     else:
         return choice(models)
