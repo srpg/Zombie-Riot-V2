@@ -287,13 +287,7 @@ def get_day_name():
         return ''
 
 def get_zombie_model():
-    models = []
-    for i in _settings['zr'][f'{day}']['model']:
-        models.append(i.split(','))
-    if len(models) is 0:
-        return _settings['zr'][f'{day}']['model']
-    else:
-        return choice(models)
+    return _settings['zr'][f'{day}']['model']
 
 def get_zombie_kill_amount():
     return int(_settings['zr'][f'{day}']['zombies'])
