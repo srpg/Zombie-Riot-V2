@@ -14,9 +14,6 @@ Currently have 4 Days as max, but you can easyly add more.
 
 This plugin replaces <a href="https://github.com/srpg/Zombie-Riot">my old zombie riot plugin</a>, better coded and some cvars options to modify
 
-#  How to use multiple models same day example:
-model = 'path/to/model.mdl,second/path/model'
-
 # Example of days adding
 1. Go inside of settings.ini file.
 2. Make enter inside of file after [4]
