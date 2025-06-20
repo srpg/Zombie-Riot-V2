@@ -5,7 +5,7 @@ from os import listdir
 from configobj import ConfigObj
 #	Commands
 from commands.say import SayCommand
-from commands.server import ServerCommand
+from commands.typed import TypedServerCommand
 #   Core
 from core import GAME_NAME, PLATFORM
 #   Colors
@@ -67,37 +67,39 @@ god_delay = None
 _path = Path(__file__).dirname()
 _server_name = cvar.find_var('hostname')
 
-_translations = LangStrings('zombie_riot_v2')
+_trasnlations = LangStrings('zombie_riot_v2')
 _settings = ConfigObj(_path + '/settings.ini')
 _downloads = _path.joinpath('downloads.txt')
 
 prefix = f'{GREEN}[Zombie Riot] » {BRIGHT_GREEN}'
 
-MARKET = SayText2(_translations['market'])
-GAMEPLAY = SayText2(_translations['gameplay'])
+MARKET = SayText2(_trasnlations['market'])
+GAMEPLAY = SayText2(_trasnlations['gameplay'])
 
 RESPAWN = TextMsg('You will respawn in {time} seconds')
 RESPAWNS = TextMsg('You will respawn in {time} second')
 
-NO_NEXT_MAP_FOUND = SayText2(_translations['map no found'])
-NEXT_MAP_SELECTED = SayText2(_translations['new map'])
-MAP_CHANGE = SayText2(_translations['map change'])
+NO_NEXT_MAP_FOUND = SayText2(_trasnlations['map no found'])
+NEXT_MAP_SELECTED = SayText2(_trasnlations['new map'])
+MAP_CHANGE = SayText2(_trasnlations['map change'])
 
-MARKET_ALIVE = SayText2(_translations['market alive'])
-MARKET_TEAM = SayText2(_translations['market ct'])
+MARKET_ALIVE = SayText2(_trasnlations['market alive'])
+MARKET_TEAM = SayText2(_trasnlations['market ct'])
 
-PURCHASE_ALIVE = SayText2(_translations['purchase alive'])
-PURCHASE_AFFORD = SayText2(_translations['purchase afford'])
-PURCHASE_TEAM = SayText2(_translations['purchase team'])
-PURCHASED_SUCCESFULLY = SayText2(_translations['succesfully purchased'])
+PURCHASE_ALIVE = SayText2(_trasnlations['purchase alive'])#SayText2('{prefix}You need to be {GREEN}alive {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
+PURCHASE_AFFORD = SayText2(_trasnlations['purchase afford'])#SayText2('{prefix}You do not have {RED}enough {GREEN}cash {BRIGHT_GREEN}to {GREEN}purchase {RED}{weapon}')
+PURCHASE_TEAM = SayText2(_trasnlations['purchase team'])#SayText2('{prefix}You need to be {GREEN}ct tean {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
+PURCHASED_SUCCESFULLY = SayText2(_trasnlations['succesfully purchased'])#SayText2('{prefix}You have {GREEN}succesfully purchased {RED}{weapon} {BRIGHT_GREEN}with {GREEN}{price}$')
 
-HINT_INFO = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
-HINT_INFO_BOT = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
+HINT_INFO = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
+HINT_INFO_BOT = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
 
 MAP_LIST = listdir(f'{GAME_NAME}/maps')
 BACKGROUND_SOUND = Sound('ambient/zr/zr_ambience.mp3')
 ICE_SOUND = Sound('physics/glass/glass_impact_bullet1.wav')
 
+SECONDARIES = [weapon.basename for weapon in WeaponClassIter(is_filters='pistol')]
+PRIMARIES =  [weapon.basename for weapon in WeaponClassIter(is_filters='primary')]
 #=================================
 # Config
 #=================================
@@ -189,6 +191,34 @@ class ZRPlayer(Player):
             else:
                 self.delay(0, self.spawn)
 
+    def purchase_weapon(self, weapon):
+        price = weapon.cost
+        cash = self.cash
+        index = self.index
+        weapon_basename = weapon.basename
+
+        secondary = self.secondary
+        primary = self.primary
+
+        if self.dead:
+            return PURCHASE_ALIVE.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
+
+        if self.team != 3:
+            return PURCHASE_TEAM.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
+
+        if not cash >= price:
+            return PURCHASE_AFFORD.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
+
+        self.cash = cash - price
+
+        if secondary is not None and weapon_basename in SECONDARIES:
+            secondary.remove()
+
+        elif primary is not None and weapon_basename in PRIMARIES:
+            primary.remove()
+
+        self.give_named_item(weapon.name)
+        PURCHASED_SUCCESFULLY.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename, price=price)
 #=================================
 # Weapons Restrict
 #=================================
@@ -210,24 +240,32 @@ def end_round():
 
 @Repeat
 def hint_panel():
-    title = get_day_name()
     humans = alive_humans()
-    for player in PlayerIter('human'):
-        index = player.index
-        player = ZRPlayer(index)
+    current_zombies = zombies
 
-        target = player.hurted_zombie
-        if target is None:
-            HINT_INFO.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=zombies)
-        else:
-            try:
-                target_player = Player(index_from_userid(target))
-                if not target_player.dead:
-                    HINT_INFO_BOT.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=zombies, name=target_player.name, health=target_player.health)
-                else:
-                    target = None
-            except ValueError:
-                target = None
+    for player in PlayerIter(['human', 'alive']):
+        index = player.index
+        zr_player = ZRPlayer(index)
+
+        target_userid = zr_player.hurted_zombie
+        if not target_userid:
+            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            continue
+
+        try:
+            target = Player(index_from_userid(target_userid))
+        except ValueError:
+            zr_player.hurted_zombie = None
+            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            continue
+
+        if target.dead:
+            zr_player.hurted_zombie = None
+            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            continue
+
+        HINT_INFO_BOT.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies, name=target.name, health=target.health)
+
 
 @Repeat
 def background():
@@ -247,7 +285,7 @@ def change_random_map():
         MAP_CHANGE.send()
         Delay(3, queue_command_string, (f'changelevel {next_map}',))
     else:
-        NO_NEXT_MAP_FOUND.send(prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED)
+        NO_NEXT_MAP_FOUND.send()
 
 def cancel_freeze_delay():
     global freeze_delay, flash_delay, god_delay
@@ -265,10 +303,7 @@ def cancel_freeze_delay():
         godmode_delay.cancel()
 
 def get_max_day():
-    count = 0
-    for i in _settings['zr']:
-        count += 1
-    return count
+    return len(_settings['zr'])
 
 def bots_count():
     return len(PlayerIter('bot'))
@@ -279,12 +314,6 @@ def alive_humans():
 def remove_idle_weapons():
     for weapons in filter(lambda x: x.owner_handle in [-1, 0], WeaponIter()):
         weapons.remove()
-
-def get_day_name():
-    try:
-        return _settings['zr'][f'{day}']['name']
-    except KeyError:
-        return ''
 
 def get_zombie_model():
     return _settings['zr'][f'{day}']['model']
@@ -311,16 +340,9 @@ def reset_color(player):
 #=================================
 # Commands
 #=================================
-@ServerCommand('zr_set_day')
-def zr_set_day_command(args):
+@TypedServerCommand('zr_set_day')
+def zr_set_day_command(command_info, amount:int):
     global day
-    if not len(args) == 2:
-        return
-
-    try:
-        amount = int(args[1])
-    except ValueError:
-        return
     day = amount
     print(f'[ZR]: Day was set to {amount}')
 
@@ -575,60 +597,10 @@ def main_market_menu_callback(menu, index, option):
         secondary_market_menu.send(index)
 
 def primary_market_menu_callback(menu, index, option):
-    choice = option.value
-
-    player = Player(index)
-    cash = player.cash
-
-    price = choice.cost
-    primary = player.primary
-    weapon_basename = choice.basename
-
-    if not player.team == 3:
-        return PURCHASE_TEAM.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
-
-    if player.dead:
-        return PURCHASE_ALIVE.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
-
-    if cash >= price:
-        player.cash = cash - price
-
-        if primary is not None:
-            primary.remove()
-
-        player.give_named_item(choice)
-        PURCHASED_SUCCESFULLY.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename, price=price)
-
-    else:
-        return PURCHASE_AFFORD.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
+    return ZRPlayer(index).purchase_weapon(option.value)
 
 def secondary_market_menu_callback(menu, index, option):
-    choice = option.value
-
-    player = Player(index)
-    cash = player.cash
-
-    price = choice.cost
-    secondary = player.secondary
-    weapon_basename = choice.basename
-
-    if not player.team == 3:
-        return PURCHASE_TEAM.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
-
-    if player.dead:
-        return PURCHASE_ALIVE.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
-
-    if cash >= price:
-        player.cash = cash - price
-
-        if secondary is not None:
-            secondary.remove()
-
-        player.give_named_item(choice)
-        PURCHASED_SUCCESFULLY.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename, price=price)
-
-    else:
-        return PURCHASE_AFFORD.send(index, prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED, weapon=weapon_basename)
+    return ZRPlayer(index).purchase_weapon(option.value)
 #=================================
 # Menus Build Callbacks
 #=================================
