@@ -64,42 +64,42 @@ freeze_delay = None
 flash_delay = None
 god_delay = None
 
-_path = Path(__file__).dirname()
+_path = Path(__file__).parent  # Make sure this is a Path object
 _server_name = cvar.find_var('hostname')
 
-_trasnlations = LangStrings('zombie_riot_v2')
-_settings = ConfigObj(_path + '/settings.ini')
-_downloads = _path.joinpath('downloads.txt')
+_translations = LangStrings('zombie_riot_v2')
+_settings = ConfigObj(str(_path / 'settings.ini'))
+_downloads = _path / 'downloads.txt'
 
 prefix = f'{GREEN}[Zombie Riot] » {BRIGHT_GREEN}'
 
-MARKET = SayText2(_trasnlations['market'])
-GAMEPLAY = SayText2(_trasnlations['gameplay'])
+MARKET = SayText2(_translations['market'])
+GAMEPLAY = SayText2(_translations['gameplay'])
 
 RESPAWN = TextMsg('You will respawn in {time} seconds')
 RESPAWNS = TextMsg('You will respawn in {time} second')
 
-NO_NEXT_MAP_FOUND = SayText2(_trasnlations['map no found'])
-NEXT_MAP_SELECTED = SayText2(_trasnlations['new map'])
-MAP_CHANGE = SayText2(_trasnlations['map change'])
+NO_NEXT_MAP_FOUND = SayText2(_translations['map no found'])
+NEXT_MAP_SELECTED = SayText2(_translations['new map'])
+MAP_CHANGE = SayText2(_translations['map change'])
 
-MARKET_ALIVE = SayText2(_trasnlations['market alive'])
-MARKET_TEAM = SayText2(_trasnlations['market ct'])
+MARKET_ALIVE = SayText2(_translations['market alive'])
+MARKET_TEAM = SayText2(_translations['market ct'])
 
-PURCHASE_ALIVE = SayText2(_trasnlations['purchase alive'])#SayText2('{prefix}You need to be {GREEN}alive {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
-PURCHASE_AFFORD = SayText2(_trasnlations['purchase afford'])#SayText2('{prefix}You do not have {RED}enough {GREEN}cash {BRIGHT_GREEN}to {GREEN}purchase {RED}{weapon}')
-PURCHASE_TEAM = SayText2(_trasnlations['purchase team'])#SayText2('{prefix}You need to be {GREEN}ct tean {BRIGHT_GREEN}in order to {GREEN}purchase {RED}{weapon}')
-PURCHASED_SUCCESFULLY = SayText2(_trasnlations['succesfully purchased'])#SayText2('{prefix}You have {GREEN}succesfully purchased {RED}{weapon} {BRIGHT_GREEN}with {GREEN}{price}$')
+PURCHASE_ALIVE = SayText2(_translations['purchase alive'])  # You can format messages in _translations if needed
+PURCHASE_AFFORD = SayText2(_translations['purchase afford'])
+PURCHASE_TEAM = SayText2(_translations['purchase team'])
+PURCHASED_SUCCESFULLY = SayText2(_translations['succesfully purchased'])
 
-HINT_INFO = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
-HINT_INFO_BOT = HintText('Day: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
+HINT_INFO = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}')
+HINT_INFO_BOT = HintText('{title}\nDay: {day}/{max_day}\nHumans left: {humans}\nZombies left: {zombies}\n{name}: {health}')
 
 MAP_LIST = listdir(f'{GAME_NAME}/maps')
 BACKGROUND_SOUND = Sound('ambient/zr/zr_ambience.mp3')
 ICE_SOUND = Sound('physics/glass/glass_impact_bullet1.wav')
 
-SECONDARIES = [weapon.basename for weapon in WeaponClassIter(is_filters='pistol')]
-PRIMARIES =  [weapon.basename for weapon in WeaponClassIter(is_filters='primary')]
+SECONDARIES = [weapon.basename for weapon in WeaponClassIter('pistol')]
+PRIMARIES = [weapon.basename for weapon in WeaponClassIter('primary')]
 #=================================
 # Config
 #=================================
@@ -241,6 +241,7 @@ def end_round():
 @Repeat
 def hint_panel():
     humans = alive_humans()
+    title = get_day_name()
     current_zombies = zombies
 
     for player in PlayerIter(['human', 'alive']):
@@ -249,22 +250,22 @@ def hint_panel():
 
         target_userid = zr_player.hurted_zombie
         if not target_userid:
-            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            HINT_INFO.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
             continue
 
         try:
             target = Player(index_from_userid(target_userid))
         except ValueError:
             zr_player.hurted_zombie = None
-            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            HINT_INFO.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
             continue
 
         if target.dead:
             zr_player.hurted_zombie = None
-            HINT_INFO.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
+            HINT_INFO.send(index, title=title, day=day, max_day=max_day, humans=humans, zombies=current_zombies)
             continue
 
-        HINT_INFO_BOT.send(index, day=day, max_day=max_day, humans=humans, zombies=current_zombies, name=target.name, health=target.health)
+        HINT_INFO_BOT.send(index, title=title, ay=day, max_day=max_day, humans=humans, zombies=current_zombies, name=target.name, health=target.health)
 
 
 @Repeat
@@ -282,10 +283,10 @@ def change_random_map():
     if len(maps):
         next_map = choice(maps)
         NEXT_MAP_SELECTED.send(prefix=prefix, map_name=next_map, RED=RED, BRIGHT_GREEN=BRIGHT_GREEN)
-        MAP_CHANGE.send()
+        MAP_CHANGE.send(prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED)
         Delay(3, queue_command_string, (f'changelevel {next_map}',))
     else:
-        NO_NEXT_MAP_FOUND.send()
+        NO_NEXT_MAP_FOUND.send(prefix=prefix, GREEN=GREEN, BRIGHT_GREEN=BRIGHT_GREEN, RED=RED)
 
 def cancel_freeze_delay():
     global freeze_delay, flash_delay, god_delay
@@ -301,6 +302,12 @@ def cancel_freeze_delay():
 
     if godmode_delay is not None and godmode_delay.running:
         godmode_delay.cancel()
+
+def get_day_name():
+    try:
+        return _settings['zr'][f'{day}']['name']
+    except KeyError:
+        return ''
 
 def get_max_day():
     return len(_settings['zr'])
@@ -645,3 +652,4 @@ primary_market_menu.select_callback = primary_market_menu_callback
 secondary_market_menu = PagedMenu(title='Select secondary to purchase')
 secondary_market_menu.build_callback = build_secondary_market_menu
 secondary_market_menu.select_callback = secondary_market_menu_callback
+
