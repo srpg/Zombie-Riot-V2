@@ -64,7 +64,7 @@ freeze_delay = None
 flash_delay = None
 god_delay = None
 
-_path = Path(__file__).parent  # Make sure this is a Path object
+_path = Path(__file__).parent
 _server_name = cvar.find_var('hostname')
 
 _translations = LangStrings('zombie_riot_v2')
@@ -86,7 +86,7 @@ MAP_CHANGE = SayText2(_translations['map change'])
 MARKET_ALIVE = SayText2(_translations['market alive'])
 MARKET_TEAM = SayText2(_translations['market ct'])
 
-PURCHASE_ALIVE = SayText2(_translations['purchase alive'])  # You can format messages in _translations if needed
+PURCHASE_ALIVE = SayText2(_translations['purchase alive'])
 PURCHASE_AFFORD = SayText2(_translations['purchase afford'])
 PURCHASE_TEAM = SayText2(_translations['purchase team'])
 PURCHASED_SUCCESFULLY = SayText2(_translations['succesfully purchased'])
