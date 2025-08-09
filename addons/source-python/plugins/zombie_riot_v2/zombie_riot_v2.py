@@ -371,7 +371,7 @@ if bool(enable_market):
 server = find_binary('server')
 
 if PLATFORM == 'windows':
-    identifier = b'\x55\x8B\xEC\x83\xEC\x2A\x8B\x45\x0C\x53\x56\x57\x33\xF6'
+    identifier = b'\x55\x8B\xEC\x83\xEC\x28\x8B\x45\x0C'
 else:
     identifier = '_ZN12CCSGameRules14TerminateRoundEfi'
 
@@ -652,4 +652,5 @@ primary_market_menu.select_callback = primary_market_menu_callback
 secondary_market_menu = PagedMenu(title='Select secondary to purchase')
 secondary_market_menu.build_callback = build_secondary_market_menu
 secondary_market_menu.select_callback = secondary_market_menu_callback
+
 
