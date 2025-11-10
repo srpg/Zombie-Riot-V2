@@ -4,7 +4,7 @@ This plugin is human vs zombies.
 
 In order to win a day, you need to kill all zombies.
 
-This plugin requires <a href="https://forums.sourcepython.com/">Source.Python</a> to load.
+This plugin requires <a href="[https://forums.sourcepython.com](https://github.com/Source-Python-Dev-Team/Source.Python)/">Source.Python</a> to load.
 
 This plugin supports Counter-Strike-Source(Possible other games)
 
@@ -36,3 +36,4 @@ This plugin replaces <a href="https://github.com/srpg/Zombie-Riot">my old zombie
   models/player/zh/zh_zombie003.phy
   models/player/zh/zh_zombie003.sw.vtx
   models/player/zh/zh_zombie003.vvd
+
